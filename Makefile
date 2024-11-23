@@ -1,14 +1,18 @@
-# Makefile
+DB_URL=postgres://thundio:password@postgres:5432/thundio_db?sslmode=disable
 
-# Varsayılan hedefler
+
 .PHONY: test sqlc clean
 
-# SQLC kodlarını oluşturma
+migrateup:
+	migrate -path migrations -database "$(DB_URL)" -verbose up
+
+migratedown:
+	migrate -path migrations -database "$(DB_URL)" -verbose down
+
 sqlc:
 	@echo "Generating SQLC code..."
 	@sqlc generate
 
-# Test komutu
 test:
 	@echo "Running Go Tests..."
 	@go test ./... -v

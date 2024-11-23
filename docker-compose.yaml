@@ -1,0 +1,50 @@
+version: '3'
+name: thundio
+services:
+  mqtt:
+    image: eclipse-mosquitto
+    ports:
+      - "1883:1883"
+    networks:
+      - app-network
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf 
+    environment:
+      - TZ=Europe/Istanbul
+
+  postgres:
+    image: postgres:17.2-alpine3.20
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: thundio
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  thundio:
+    build: .
+    environment:
+      - MQTT_BROKER=mqtt://mqtt:1883
+      - DEVICE_TOPIC=device-topic
+      - MQTT_CLIENT_ID=thundio-client
+      - DATABASE_URL=postgres://postgres:postgres@postgres:5432/thundio?sslmode=disable
+    depends_on:
+      - mqtt
+      - postgres
+    networks:
+      - app-network
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./migrations:/app/migrations
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

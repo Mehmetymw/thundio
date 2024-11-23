@@ -9,6 +9,10 @@ import (
 
 type Config struct {
 	MQTTClientID string `mapstructure:"MQTT_CLIENT_ID"`
+	MQTTBroker   string `mapstructure:"MQTT_BROKER"`
+	KafkaBroker  string `mapstructure:"KAFKA_BROKER"`
+	DatabaseUrl  string `mapstructure:"DATABASE_URL"`
+	DeviceTopic  string `mapstructure:"DEVICE_TOPIC"`
 }
 
 func NewConfig() (*Config, error) {
@@ -25,8 +29,6 @@ func NewConfig() (*Config, error) {
 		} else {
 			return nil, fmt.Errorf("config file couldn't be read: %w", err)
 		}
-	} else {
-		log.Println("Config successfully read from:", viper.ConfigFileUsed())
 	}
 
 	var config Config

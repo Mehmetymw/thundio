@@ -4,15 +4,18 @@ import (
 	"time"
 
 	"github.com/mehmetymw/thundio/internal/devices/domain"
+	"github.com/mehmetymw/thundio/internal/devices/infrastructure/mqtt"
 )
 
 type DeviceService struct {
 	Repository domain.DeviceRepository
+	Publisher  *mqtt.MQTTPublisher
 }
 
-func NewDeviceService(repo domain.DeviceRepository) *DeviceService {
+func NewDeviceService(repo domain.DeviceRepository, producer *mqtt.MQTTPublisher) *DeviceService {
 	return &DeviceService{
 		Repository: repo,
+		Publisher:  producer,
 	}
 }
 
@@ -30,7 +33,13 @@ func (s *DeviceService) RegisterDevice(name, deviceType string) (*domain.Device,
 		return nil, err
 	}
 
-	device.ID = deviceID
+	device.ID = *deviceID
+
+	err = s.Publisher.PublishMessage("Device registered: " + name)
+	if err != nil {
+		return nil, err
+	}
+
 	return device, nil
 }
 
