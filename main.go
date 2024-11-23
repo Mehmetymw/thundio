@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -25,7 +26,6 @@ func main() {
 	}
 
 	db.RunMigrations(config.DatabaseUrl)
-
 	dbConn, err := db.InitDB(config.DatabaseUrl)
 	if err != nil {
 		log.Fatalf("db cannot init: %v\n", err)
@@ -53,13 +53,17 @@ func main() {
 		mqttSubscriber.Subscribe()
 	}()
 
+	deviceName := "Sensor-" + fmt.Sprintf("%d", 1)
+	deviceType := "Sensor"
+
 	go func() {
-		device, err := deviceService.RegisterDevice("Test Device", "Sensor")
+		device, err := deviceService.RegisterDevice(deviceName, deviceType)
 		if err != nil {
 			log.Printf("Failed to register device: %v", err)
 		} else {
 			log.Printf("Device %s registered successfully with ID: %d", device.Name, device.ID)
-			err := mqttPublisher.PublishMessage("Device registered: " + device.Name)
+
+			err := mqttPublisher.PublishMessage(fmt.Sprintf("Device registered: %s", device.Name))
 			if err != nil {
 				log.Printf("Failed to publish message after device registration: %v", err)
 			}
